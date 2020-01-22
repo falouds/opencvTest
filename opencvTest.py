@@ -2,10 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-def showImg(time,img,imgName):
-    cv2.imshow(imgName,img)
-    cv2.waitKey(time)#任意键终止
-    cv2.destroyAllWindows()
+
 
 def colorRead(path):
     return cv2.imread(path,cv2.IMREAD_COLOR)#默认读取bgr格式
@@ -28,6 +25,13 @@ def cutpic(img):
 def cutChannel(img):
     b,g,r=cv2.split(img)
     return b,g,r
+
+def showImg(time,img,imgName):
+    cv2.imshow(imgName,img)
+    cv2.waitKey(time)#任意键终止
+    cv2.destroyAllWindows()
+
+
 def padding(img):
     top,bottom,left,right = (50,50,50,50)
     re = cv2.copyMakeBorder(img,top,bottom,left,right,borderTypee = cv2.BORDER_REPLICATE)
@@ -55,21 +59,59 @@ def smooth(img):
     #return box
     #return Gaussian
     return median
+
+def corrosionOperation(img):#腐蚀操作
+    kernel = np.ones((5,5),np.uint8)#返回一个值全是1的数组，zero函数同理
+    erosion = cv2.erode(img,kernel,iterations = 1)
+    return erosion
+
+def expandOperation(img):#膨胀运算
+    kernel = np.ones((3,3),np.uint8)
+    dige=cv2.dilate(img,kernel,iterations = 1)
+    return dige
+
+def openCloseOperation(img):
+    kernel = np.ones((5,5),np.uint8)
+    #open 先腐蚀后膨胀
+    #close 前膨胀后腐蚀
+    opOrCl = cv2.morphologyEx(img,cv2.MORPH_OPEN,kernel)#CLOSE
+    return opOrCl
+
+def gradientOperation(img):
+    #梯度运算 膨胀-腐蚀 得到边界
+    kernel = np.ones((7,7),np.uint8)
+    #dilate = cv2.dilate(img,kernel,iterations = 5)
+    #erosion = cv2.erode(img,kernel,iterations = 5)
+    #res = np.hstack((dilate,erosion))
+    return cv2.morphologyEx(img,cv2.MORPH_GRADIENT,kernel)
+
+def topHat(img):
+    #原始-开运算（剩下毛刺）
+    kernel = np.ones((7,7),np.uint8)
+    return cv2.morphologyEx(img,cv2.MORPH_TOPHAT,kernel)
+
+def blackHat(img):
+    #闭运算-原始输入（轮廓）
+    kernel = np.ones((7,7),np.uint8)
+    return cv2.morphologyEx(img,cv2.MORPH_BLACKHAT,kernel)
+
 def pictureTest():
     #img=cv2.imread("picture/test01.jpg")#默认读取bgr格式
-    img_2 = colorRead("picture/test02.jpg")
-    img_1 = colorRead("picture/test01.jpg")
-    #img_2 = grayRead("picture/test02.jpg")
-    #img_1 = grayRead("picture/test01.jpg")
+    #img_2 = colorRead("picture/test02.jpg")
+    #img_1 = colorRead("picture/test01.jpg")
+    img_2 = grayRead("picture/test02.jpg")
+    img_1 = grayRead("picture/test01.jpg")
     #cat = cutpic(img)
     #img += 10#add函数越界直接255，+则取余
     
     img_2 = cv2.resize(img_2,(1080,730))
-    res = cv2.addWeighted(img_1,0.5,img_2,0.5,0)
-    res_copy = thre(res)
-    img_1 = smooth(img_1)
+    #res = cv2.addWeighted(img_1,0.5,img_2,0.5,0)#融合
+    #res_copy = thre(res)#填充边框
+    #img_1 = smooth(img_1)#平滑处理
+    img_1 = topHat(img_1)
+    showInfo(img_1)
     showImg(0,img_1,"img")
-    #showInfo(img)
+    
 
 
 def movTest():
