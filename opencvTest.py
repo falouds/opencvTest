@@ -94,6 +94,25 @@ def blackHat(img):
     #闭运算-原始输入（轮廓）
     kernel = np.ones((7,7),np.uint8)
     return cv2.morphologyEx(img,cv2.MORPH_BLACKHAT,kernel)
+#梯度检测
+
+def sobel(img):
+    dstx = cv2.Sobel(img,cv2.CV_64F,1,0,ksize = 3)#cv2,CV_64F可以表示负数 1，0选择x或者y
+    dsty = cv2.Sobel(img,cv2.CV_64F,0,1,ksize = 3)#cv2,CV_64F可以表示负数 1，0选择x或者y
+    dstx = cv2.convertScaleAbs(dstx)#取绝对值
+    dsty = cv2.convertScaleAbs(dsty)
+    return cv2.addWeighted(dstx,1,dsty,1,0)
+
+def scharr(img):
+    dstx = cv2.Scharr(img,cv2.CV_64F,1,0)#cv2,CV_64F可以表示负数 1，0选择x或者y
+    dsty = cv2.Scharr(img,cv2.CV_64F,0,1)#cv2,CV_64F可以表示负数 1，0选择x或者y
+    dstx = cv2.convertScaleAbs(dstx)#取绝对值
+    dsty = cv2.convertScaleAbs(dsty)
+    return cv2.addWeighted(dstx,1,dsty,1,0)
+
+def laplacian(img):
+    lap = cv2.Laplacian(img,cv2.CV_64F)
+    return cv2.convertScaleAbs(lap)
 
 def pictureTest():
     #img=cv2.imread("picture/test01.jpg")#默认读取bgr格式
@@ -108,7 +127,7 @@ def pictureTest():
     #res = cv2.addWeighted(img_1,0.5,img_2,0.5,0)#融合
     #res_copy = thre(res)#填充边框
     #img_1 = smooth(img_1)#平滑处理
-    img_1 = topHat(img_1)
+    img_1 = sobel(img_1)
     showInfo(img_1)
     showImg(0,img_1,"img")
     
