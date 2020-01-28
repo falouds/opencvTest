@@ -114,6 +114,13 @@ def laplacian(img):
     lap = cv2.Laplacian(img,cv2.CV_64F)
     return cv2.convertScaleAbs(lap)
 
+def canny(img):
+    v1 = cv2.Canny(img,140,150)#80 150 双重阈值
+    v2 = cv2.Canny(img,50,100)
+
+    res = np.hstack((v1,v2))
+    return res
+
 def pictureTest():
     #img=cv2.imread("picture/test01.jpg")#默认读取bgr格式
     #img_2 = colorRead("picture/test02.jpg")
@@ -127,7 +134,8 @@ def pictureTest():
     #res = cv2.addWeighted(img_1,0.5,img_2,0.5,0)#融合
     #res_copy = thre(res)#填充边框
     #img_1 = smooth(img_1)#平滑处理
-    img_1 = sobel(img_1)
+    #img_1 = sobel(img_1)
+    img_1 = canny(img_1)
     showInfo(img_1)
     showImg(0,img_1,"img")
     
