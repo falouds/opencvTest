@@ -3,6 +3,36 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+method = ["cv2.TM_CCOEFF","cv2.TM_CCOEFF_NORMED","cv2.TM_CCORR","cv2.TM_CCORR_NORMED","cv2.TM_SQDIFF","cv2.TM_SQDIFF_NORMED"]
+
+def matchT(img1,img2):
+    for meth in method:
+        img_copy = img1.copy()
+        methodItem = eval(meth)
+        res = cv2.matchTemplate(img1,img2,methodItem)
+        min_val,max_val,min_loc,max_loc = cv2.minMaxLoc(res)
+        print(res.shape)
+        print(min_val)
+        print(max_val)
+        print(min_loc)
+        print(max_loc)#根据方法不同取值
+        print(img2.shape)
+        if(methodItem in [cv2.TM_SQDIFF,cv2.TM_SQDIFF_NORMED]):
+            top_left = min_loc
+        else:
+            top_left = max_loc
+        bottom_right = (top_left[0]+img2.shape[1],top_left[1]+img2.shape[0])
+        cv2.rectangle(img_copy,top_left,bottom_right,255,2)
+    
+        plt.subplot(121),plt.imshow(res,cmap="gray")
+        plt.xticks([]),plt.yticks([])
+        plt.subplot(122),plt.imshow(img_copy,cmap="gray")
+        plt.xticks([]),plt.yticks([])
+        plt.suptitle(meth)
+        plt.show()
+    
+
+
 
 def colorRead(path):
     return cv2.imread(path,cv2.IMREAD_COLOR)#默认读取bgr格式
@@ -117,27 +147,69 @@ def laplacian(img):
 def canny(img):
     v1 = cv2.Canny(img,140,150)#80 150 双重阈值
     v2 = cv2.Canny(img,50,100)
-
     res = np.hstack((v1,v2))
     return res
 
+def Lapras(img):
+    return (img - cv2.pyrUp(cv2.pyrDown(img)))
+
+def up(img ,upordown):
+    if(upordown ==1):
+        return cv2.pyrUp(img)
+    else:
+        return cv2.pyrDown(img)
+
+def thre(img):
+    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    ret,thresh = cv2.threshold(gray,127,255,cv2.THRESH_BINARY) #转成二值图像
+    binary,contours,hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)#binary 原图像 contours轮廓信息，hierarchy层级
+    copy_img = img.copy()#会改原图
+    #
+    app = approximate(contours)
+    res = cv2.drawContours(copy_img,[app],-1,(0,0,255),2)#-1指所有轮廓，第几层级的轮廓，轮廓颜色,线条宽度
+    showImg(0,img,"img")
+    showImg(0,res,"img")
+    return res,img,contours
+
+def conInfo(contours):
+    cnt = contours[0]
+    print(cv2.arcLength(cnt,True))
+    print(cv2.contourArea(cnt))
+   
+     
+def approximate(contours):
+    #epsilon = 0.1*cv2.arcLength(contours,True)#一般是周长百分比
+    epsilon = 0.1
+    approx = cv2.approxPolyDP(contours[30],epsilon,True)
+    return approx
+
+
 def pictureTest():
     #img=cv2.imread("picture/test01.jpg")#默认读取bgr格式
-    #img_2 = colorRead("picture/test02.jpg")
+    #img_2 = colorRead("picture/test05.jpg")
     #img_1 = colorRead("picture/test01.jpg")
-    img_2 = grayRead("picture/test02.jpg")
+    img_2 = grayRead("picture/test05.jpg")
     img_1 = grayRead("picture/test01.jpg")
     #cat = cutpic(img)
     #img += 10#add函数越界直接255，+则取余
     
-    img_2 = cv2.resize(img_2,(1080,730))
+    #img_2 = cv2.resize(img_2,(1080,730))
     #res = cv2.addWeighted(img_1,0.5,img_2,0.5,0)#融合
     #res_copy = thre(res)#填充边框
     #img_1 = smooth(img_1)#平滑处理
     #img_1 = sobel(img_1)
-    img_1 = canny(img_1)
-    showInfo(img_1)
-    showImg(0,img_1,"img")
+    #img_1 = canny(img_1)
+    #img_1 = up(img_1,2)
+    #img_1 = Lapras(img_1)
+    
+    #img,img_1,contours = thre(img_1)
+    #conInfo(contours)
+    #showInfo(img)
+    #showImg(0,img_1,"img")
+    #showImg(0,img,"img")
+
+    #showImg(0,img_2,"img_2")
+    matchT(img_1,img_2)
     
 
 
