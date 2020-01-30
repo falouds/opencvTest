@@ -183,7 +183,44 @@ def approximate(contours):
     approx = cv2.approxPolyDP(contours[30],epsilon,True)
     return approx
 
+def cal(img):
+    return cv2.calcHist([img],[0],None,[256],[0,256])
+#直方图的均衡化
+def equ(img):
+    return cv2.equalizeHist(img)
+#自适应均衡化 噪音点影响结果，分区域的均衡化可能会出现边界
+def cequ(img):
+    return cv2.createCLAHE(clipLimit=2.0,tileGridSize=(8,8)).apply(img)
+def mydft(img_float32):
+    dft = cv2.dft(img_float32,flags = cv2.DFT_COMPLEX_OUTPUT)#傅里叶变换
+    dft_shift = np.fft.fftshift(dft)#低频放到中心位置
+    magnitude = 20*np.log(cv2.magnitude(dft_shift[:,:,0],dft_shift[:,:,1]))#将频率映射到0-255
+    return magnitude
 
+def lowpass(img):
+    img_float32 = np.float32(img)
+    dft = cv2.dft(img_float32,flags = cv2.DFT_COMPLEX_OUTPUT)#傅里叶变换
+    dft_shift = np.fft.fftshift(dft)#低频放到中心位置
+    rows,cols = img.shape
+    crow,ccol = int(rows/2),int(cols/2)
+
+    #构造滤波器，就是个掩码,低通,高通就把0和1反过来
+    mask = np.zeros((rows,cols,2),np.uint8)
+    mask[crow-30:crow+30,ccol-30:ccol+30] = 1
+
+
+    fshift = dft_shift*mask#抠图
+    f_ishift = np.fft.ifftshift(fshift)#恢复原位
+    img_back = cv2.idft(f_ishift)#傅里叶逆变换
+    img_back = cv2.magnitude(img_back[:,:,0],img_back[:,:,1])#实部虚部处理
+    
+    #显示部分
+    plt.subplot(121),plt.imshow(img,cmap="gray")
+    plt.title("input"),plt.xticks([]),plt.yticks([])
+    plt.subplot(122),plt.imshow(img_back,cmap="gray")
+    plt.title("res"),plt.xticks([]),plt.yticks([])
+
+    plt.show()
 def pictureTest():
     #img=cv2.imread("picture/test01.jpg")#默认读取bgr格式
     #img_2 = colorRead("picture/test05.jpg")
@@ -204,12 +241,26 @@ def pictureTest():
     
     #img,img_1,contours = thre(img_1)
     #conInfo(contours)
-    #showInfo(img)
+    
     #showImg(0,img_1,"img")
     #showImg(0,img,"img")
+    #img = cequ(img_1)
+    #showInfo(img)
+    #mag = mydft(np.float32(img_1))
+    #plt.subplot(121),plt.imshow(img_1,cmap="gray")
+    #plt.title("input"),plt.xticks([]),plt.yticks([])
+    #plt.subplot(122),plt.imshow(mag,cmap="gray")
+    #plt.title("magnitude spectrum"),plt.xticks([]),plt.yticks([])
+    #plt.hist(img.ravel(),256)#直方图
+    
+    #plt.plot(img,color='b')#折线图 
+    #plt.xlim([0,256])
+    #plt.show()
+    #showImg(0,img_1,"img")
+    #showImg(0,img,"img")
+    #matchT(img_1,img_2)
 
-    #showImg(0,img_2,"img_2")
-    matchT(img_1,img_2)
+    lowpass(img_1)
     
 
 
